@@ -166,6 +166,20 @@ You can modify colors, fonts, and layouts to match your server's branding.
 
 ---
 
+## 📝 About This Fork
+
+This refactored version is **designed specifically for TempestaRP's infrastructure**. It is shared as-is for those who might find it useful.
+
+### ⚠️ Important Notice
+
+- ⚠️ **No Technical Support**: We do not provide setup assistance, debugging, or implementation help
+- 🔧 **TempestaRP-Specific**: This code is optimized for our server's exact setup and may require heavy adaptation for other environments
+- 📚 **Minimal Documentation**: Code comments and notes are minimal because this is our internal implementation, not a public library
+- 🚀 **Reference Implementation**: Use this as a reference or example—it's not designed to be plug-and-play
+- 👤 **Respect Original License**: Always respect JSFOUR's original copyright and no-resale terms
+
+---
+
 ## 📝 License
 
 **Original Work by JSFOUR:**
@@ -183,7 +197,7 @@ This fork respects the original author's licensing terms. Please do **not** sell
 
 ## 🙏 Credits
 
-- **Original Author**: [Jonas Svensson (JSFOUR)](https://github.com/jnsvns)
+- **Original Author**: [Jonas Svensson (JSFOUR)](https://github.com/jonassvensson4)
 - **Original Repository**: [jsfour-idcard](https://github.com/jnsvns/jsfour-idcard)
 - **This Fork**: Modern refactoring with improved code quality and ESX integration
 
