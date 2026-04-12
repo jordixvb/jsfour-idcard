@@ -183,7 +183,7 @@ This fork respects the original author's licensing terms. Please do **not** sell
 
 ## 🙏 Credits
 
-- **Original Author**: [Jonas Svensson (JSFOUR)](https://github.com/jonassvensson4)
+- **Original Author**: [Jonas Svensson (JSFOUR)](https://github.com/jnsvns)
 - **Original Repository**: [jsfour-idcard](https://github.com/jnsvns/jsfour-idcard)
 - **This Fork**: Modern refactoring with improved code quality and ESX integration
 
