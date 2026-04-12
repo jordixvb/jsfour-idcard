@@ -1,112 +1,210 @@
-# jsfour-idcard
-This is an updated version of my <a href="https://github.com/jonassvensson4/jsfour-legitimation">jsfour-legitimation<a/>. It has and ID card, firearms license and a driver license
+# 🪪 jsfour-idcard
 
-## LICENSE
-Please don't sell or reupload this resource
+> A modern, refactored identification card system for ESX Legacy FiveM servers
 
-## INSTALLATION
-Drag and drop. 
-You also need to have <a href="https://github.com/ESX-Org/es_extended">es_extended</a> and <a href="https://github.com/ESX-Org/esx_license">esx_license</a> installed.
+## 📋 Overview
 
-You need to add a couple rows of code depending on how you want to use the ID. Please check the **Usage** down below.
+An updated and refactored version of the classic jsfour-idcard resource. This script provides a complete identity documentation system for FiveM servers, allowing players to view and share their **ID cards**, **driver licenses**, and **firearms licenses** with an intuitive interface.
 
+This fork includes significant improvements to code quality, performance, and modern ESX integration patterns.
 
-## SCREENSHOTS
-![screenshot](https://i.gyazo.com/645a490f474296a9c5ce2a05a16a33c9.png)
-![screenshot](https://i.gyazo.com/f4c14b2efe6f0ff8c88098a4a524e8be.png)
-![screenshot](https://i.gyazo.com/0aaeaa5b78cd2bef98ee9185bc5295c8.png)
+---
 
-## USAGE
+## ✨ Features
 
-Example on how to add a button-event since people don't want to learn:
-https://pastebin.com/UPQRcAei
+- 🪪 **ID Cards**: View and display official identification documents
+- 🚗 **Driver Licenses**: Check and share driving credentials  
+- 🔫 **Firearms Licenses**: Manage and present weapon permits
+- 👥 **Share Documents**: Present identification to nearby players with immersive roleplay support
+- ⚡ **Optimized Client/Server**: Modern event handling with efficient cleanup
+- 🔐 **Secure**: Parameterized queries and proper null checks for data safety
+
+---
+
+## 🔄 What's New in This Fork
+
+### ✨ Client-Side Improvements
+
+- ✅ Added `CloseIDCard` helper function for clean state management
+- ✅ Refactored event registration with inline handler
+- ✅ Replaced perpetual key loop with smart thread that cleans up after ESC/BACKSPACE is pressed
+- ✅ Better memory management and performance optimization
+
+### 🛠️ Server-Side Improvements
+
+- ✅ Modern ESX integration via `exports['es_extended']:getSharedObject()`
+- ✅ Proper player validation with `ESX.GetPlayerFromId()` and null checks
+- ✅ **Parameterized SQL queries** (`?` placeholders) for security and injection prevention
+- ✅ Optimized license checking with early breaks
+- ✅ Cleaner notification system using `ESX.ShowNotification()`
+- ✅ Streamlined user/licenses data assembly and transmission
+- ✅ Code cleanup and inline comments for maintainability
+
+---
+
+## 📥 Installation
+
+### Prerequisites
+
+- **es_extended (ESX Legacy)** - Core framework
+- **oxmysql** - Database connectivity (or your configured MySQL resource)
+- **esx_license** - License system for driver and firearms permits
+
+### Setup Steps
+
+1. **Download** and extract the resource to your `resources` folder
+2. **Ensure** ESX Legacy and esx_license are properly installed
+3. **Add** to your `server.cfg`:
+   ```
+   ensure jsfour-idcard
+   ```
+4. **Restart** your server or use the in-game restart command
+
+---
+
+## 🎮 Usage
+
+### Viewing Your Own Documents
 
 ```lua
--- ### Event usages:
-
--- Look at your own ID-card
+-- View your ID card
 TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()))
 
--- Show your ID-card to the closest person
-local player, distance = ESX.Game.GetClosestPlayer()
-
-if distance ~= -1 and distance <= 3.0 then
-  TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player))
-else
-  ESX.ShowNotification('No players nearby')
-end
-
-
--- Look at your own driver license
+-- View your driver license
 TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'driver')
 
--- Show your driver license to the closest person
-local player, distance = ESX.Game.GetClosestPlayer()
-
-if distance ~= -1 and distance <= 3.0 then
-  TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'driver')
-else
-  ESX.ShowNotification('No players nearby')
-end
-
-
--- Look at your own firearms license
+-- View your firearms license
 TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'weapon')
+```
 
--- Show your firearms license to the closest person
+### Showing Documents to Others
+
+```lua
 local player, distance = ESX.Game.GetClosestPlayer()
 
 if distance ~= -1 and distance <= 3.0 then
+  -- Show ID card
+  TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player))
+  
+  -- Or show driver license
+  TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'driver')
+  
+  -- Or show firearms license
   TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'weapon')
 else
   ESX.ShowNotification('No players nearby')
 end
+```
 
--- ### A menu (THIS IS AN EXAMPLE)
-function openMenu()
+### Complete Menu Example
+
+```lua
+function openIDMenu()
   ESX.UI.Menu.Open(
-	'default', GetCurrentResourceName(), 'id_card_menu',
-	{
-		title    = 'ID menu',
-		elements = {
-			{label = 'Check your ID', value = 'checkID'},
-			{label = 'Show your ID', value = 'showID'},
-			{label = 'Check your driver license', value = 'checkDriver'},
-			{label = 'Show your driver license', value = 'showDriver'},
-			{label = 'Check your firearms license', value = 'checkFirearms'},
-			{label = 'Show your firearms license', value = 'showFirearms'},
-		}
-	},
-	function(data, menu)
-		local val = data.current.value
-		
-		if val == 'checkID' then
-			TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()))
-		elseif val == 'checkDriver' then
-			TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'driver')
-		elseif val == 'checkFirearms' then
-			TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'weapon')
-		else
-			local player, distance = ESX.Game.GetClosestPlayer()
-			
-			if distance ~= -1 and distance <= 3.0 then
-				if val == 'showID' then
-				TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player))
-				elseif val == 'showDriver' then
-			TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'driver')
-				elseif val == 'showFirearms' then
-			TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'weapon')
-				end
-			else
-			  ESX.ShowNotification('No players nearby')
-			end
-		end
-	end,
-	function(data, menu)
-		menu.close()
-	end
-)
+    'default', GetCurrentResourceName(), 'id_card_menu',
+    {
+      title    = 'Documentation',
+      elements = {
+        {label = 'Check your ID', value = 'checkID'},
+        {label = 'Show your ID', value = 'showID'},
+        {label = 'Check driver license', value = 'checkDriver'},
+        {label = 'Show driver license', value = 'showDriver'},
+        {label = 'Check firearms license', value = 'checkFirearms'},
+        {label = 'Show firearms license', value = 'showFirearms'},
+      }
+    },
+    function(data, menu)
+      local val = data.current.value
+      local player, distance = ESX.Game.GetClosestPlayer()
+      
+      if val == 'checkID' then
+        TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()))
+      elseif val == 'checkDriver' then
+        TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'driver')
+      elseif val == 'checkFirearms' then
+        TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'weapon')
+      elseif distance ~= -1 and distance <= 3.0 then
+        if val == 'showID' then
+          TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player))
+        elseif val == 'showDriver' then
+          TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'driver')
+        elseif val == 'showFirearms' then
+          TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'weapon')
+        end
+      else
+        ESX.ShowNotification('No players nearby')
+      end
+    end,
+    function(data, menu)
+      menu.close()
+    end
+  )
 end
 ```
 
-PSD file: https://www.dropbox.com/sh/ho6xq5cmk6sxz6x/AAB3aPJOylL7EWrU6BFb45-0a?dl=0
+---
+
+## 🎨 Customization
+
+### Card Design
+
+A PSD template is available for customizing the visual design of ID cards:
+
+📥 [Download PSD Template](https://www.dropbox.com/sh/ho6xq5cmk6sxz6x/AAB3aPJOylL7EWrU6BFb45-0a?dl=0)
+
+You can modify colors, fonts, and layouts to match your server's branding.
+
+---
+
+## 🔗 Dependencies
+
+| Dependency | Repository | Purpose |
+|---|---|---|
+| **es_extended (ESX Legacy)** | [ESX Core](https://github.com/esx-framework/esx_core) | Core player framework |
+| **esx_license** | [ESX License](https://github.com/esx-framework/ESX-Legacy-Addons/tree/main/%5Besx_addons%5D/esx_license) | License management system |
+| **oxmysql** | [oxmysql](https://github.com/overextended/oxmysql) | Database queries |
+
+---
+
+## 📝 License
+
+**Original Work by JSFOUR:**
+
+```
+Copyright (C) JSFOUR - All Rights Reserved 
+You are not allowed to sell this script or re-upload it 
+Visit my page at https://github.com/jonassvensson4 
+Written by Jonas Svensson, July 2018 
+```
+
+This fork respects the original author's licensing terms. Please do **not** sell or reupload this resource.
+
+---
+
+## 🙏 Credits
+
+- **Original Author**: [Jonas Svensson (JSFOUR)](https://github.com/jonassvensson4)
+- **Original Repository**: [jsfour-idcard](https://github.com/jnsvns/jsfour-idcard)
+- **This Fork**: Modern refactoring with improved code quality and ESX integration
+
+---
+
+## 👨‍💻 Fork Changes Summary
+
+This fork includes a complete refactor focusing on:
+
+- **Performance**: Eliminated perpetual key loops in favor of smart thread management
+- **Security**: Parameterized SQL queries prevent injection attacks
+- **Modern ESX**: Updated to current ESX Legacy integration patterns
+- **Code Quality**: Cleaner logic, better error handling, and improved maintainability
+- **Memory Management**: Proper cleanup and resource deallocation
+
+---
+
+<div align="center">
+
+⭐ If you find this useful, consider giving it a star!
+
+Made with ❤️ for the FiveM community
+
+</div>
