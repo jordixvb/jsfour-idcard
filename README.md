@@ -16,6 +16,7 @@ This fork includes significant improvements to code quality, performance, and mo
 - 🚗 **Driver Licenses**: Check and share driving credentials  
 - 🔫 **Firearms Licenses**: Manage and present weapon permits
 - 👥 **Share Documents**: Present identification to nearby players with immersive roleplay support
+- 🌐 **Easy Localization**: Centralized translation system for gender, labels, and license types
 - ⚡ **Optimized Client/Server**: Modern event handling with efficient cleanup
 - 🔐 **Secure**: Parameterized queries and proper null checks for data safety
 
@@ -144,6 +145,21 @@ end
 
 ---
 
+### 🌐 Localization & Labels
+
+The system now features a centralized translation object in `init.js`. This allows you to easily change the UI text without digging through the logic.
+
+```javascript
+const lang = {
+  male: "VARÓN",
+  female: "MUJER",
+  bike: "MOTO",
+  truck: "CAMIÓN",
+  car: "COCHE"
+};
+
+---
+
 ## 🎨 Customization
 
 ### Card Design
@@ -207,11 +223,12 @@ This fork respects the original author's licensing terms. Please do **not** sell
 
 This fork includes a complete refactor focusing on:
 
-- **Performance**: Eliminated perpetual key loops in favor of smart thread management
-- **Security**: Parameterized SQL queries prevent injection attacks
-- **Modern ESX**: Updated to current ESX Legacy integration patterns
-- **Code Quality**: Cleaner logic, better error handling, and improved maintainability
-- **Memory Management**: Proper cleanup and resource deallocation
+- **Performance**: Eliminated perpetual key loops in favor of smart thread management.
+- **UI & UX**: Added smooth `fadeIn/fadeOut` animations and automatic data clearing when closing.
+- **Localization Support**: Refactored JavaScript to include a dictionary for easy translation of genders and vehicle types.
+- **Security**: Parameterized SQL queries prevent injection attacks.
+- **Modern ESX**: Updated to current ESX Legacy integration patterns.
+- **Code Quality**: Cleaned up the license rendering logic using dynamic arrays instead of hardcoded checks.
 
 ---
 
