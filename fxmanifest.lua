@@ -1,24 +1,31 @@
-fx_version 'adamant'
-
+fx_version 'cerulean'
 game 'gta5'
+
+author 'JSFOUR (Refactored by TempestaRP)'
+description 'Modern Identity Card System'
+version '2.0.0'
 
 ui_page 'html/index.html'
 
-server_script {
-	'@mysql-async/lib/MySQL.lua',
-	'server.lua'
+server_scripts {
+    '@oxmysql/lib/utils.lua',
+    'server.lua'
 }
 
-client_script {
-	'client.lua'
+client_scripts {
+    'client.lua'
 }
 
 files {
-	'html/index.html',
-	'html/assets/css/*.css',
-	'html/assets/js/*.js',
-	'html/assets/fonts/roboto/*.woff',
-	'html/assets/fonts/roboto/*.woff2',
-	'html/assets/fonts/justsignature/JustSignature.woff',
-	'html/assets/images/*.png'
+    'html/index.html',
+    'html/assets/css/*.css',
+    'html/assets/js/*.js',
+    'html/assets/fonts/**/*.woff',
+    'html/assets/fonts/**/*.woff2',
+    'html/assets/images/*.png'
+}
+
+dependencies {
+    'es_extended',
+    'esx_license'
 }
