@@ -149,7 +149,6 @@ end
 
 The system now features a centralized translation object in `init.js`. This allows you to easily change the UI text without digging through the logic.
 
-```javascript
 const lang = {
   male: "VARÓN",
   female: "MUJER",
