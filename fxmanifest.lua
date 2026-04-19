@@ -8,7 +8,7 @@ version '2.0.0'
 ui_page 'html/index.html'
 
 server_scripts {
-    '@oxmysql/lib/utils.lua',
+    '@oxmysql/lib/MySQL.lua',
     'server.lua'
 }
 
