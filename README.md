@@ -1,224 +1,259 @@
-# 🪪 jsfour-idcard
+# jsfour-idcard — maintained fork
 
-> A modern, refactored identification card system for ESX Legacy FiveM servers
+Fork mantenido de **jsfour-idcard** para servidores ESX Legacy actuales, con `oxmysql`, validaciones de seguridad, licencias configurables y soporte opcional para `MugShotBase64`.
 
-## 📋 Overview
+> Recurso original: JSFOUR / Jonas Svensson.  
+> Este fork conserva el nombre, eventos y licencia original del recurso.
 
-An updated and refactored version of the classic jsfour-idcard resource. This script provides a complete identity documentation system for FiveM servers, allowing players to view and share their **ID cards**, **driver licenses**, and **firearms licenses** with an intuitive interface.
+## Licencia
 
-This fork includes significant improvements to code quality, performance, and modern ESX integration patterns.
+Lee `license.txt` antes de usar, redistribuir o vender este recurso.
 
----
+La licencia original indica expresamente que **no está permitido vender ni re-subir el script**. Si quieres publicarlo en una tienda, marketplace, Tebex, GitHub público o similar, necesitas permiso del autor original.
 
-## ✨ Features
+## Qué se ha mejorado
 
-- 🪪 **ID Cards**: View and display official identification documents
-- 🚗 **Driver Licenses**: Check and share driving credentials  
-- 🔫 **Firearms Licenses**: Manage and present weapon permits
-- 👥 **Share Documents**: Present identification to nearby players with immersive roleplay support
-- ⚡ **Optimized Client/Server**: Modern event handling with efficient cleanup
-- 🔐 **Secure**: Parameterized queries and proper null checks for data safety
+- Actualizado a `fx_version 'cerulean'` y `lua54 'yes'`.
+- Migrado de `mysql-async` a `oxmysql`.
+- Compatible con ESX Legacy mediante `@es_extended/imports.lua` y fallback por export.
+- Evento clásico preservado: `jsfour-idcard:open`.
+- Seguridad reforzada:
+  - el servidor ignora el ID de propietario enviado por el cliente;
+  - el dueño real del documento siempre es `source`;
+  - validación server-side de distancia al mostrar a otro jugador;
+  - whitelist de tipos de documento;
+  - cooldown anti-spam;
+  - consultas SQL con parámetros `?`;
+  - columnas/tablas de SQL validadas desde config.
+- Labels de licencias 100% configurables desde `config.lua`.
+- Soporte opcional para foto real con `MugShotBase64`.
+- Fallback automático a `male.png` / `female.png` si no hay mugshot.
+- Comando opcional `/idcard` incluido.
+- UI actualizada para mostrar labels largos de licencias.
 
----
+## Requisitos
 
-## 🔄 What's New in This Fork
+- `es_extended` actualizado.
+- `oxmysql`.
+- `esx_license` o una tabla compatible `user_licenses`.
+- Opcional: `MugShotBase64`.
 
-### ✨ Client-Side Improvements
+## Instalación
 
-- ✅ Added `CloseIDCard` helper function for clean state management
-- ✅ Refactored event registration with inline handler
-- ✅ Replaced perpetual key loop with smart thread that cleans up after ESC/BACKSPACE is pressed
-- ✅ Better memory management and performance optimization
+1. Coloca la carpeta como:
 
-### 🛠️ Server-Side Improvements
+```txt
+resources/[esx]/jsfour-idcard
+```
 
-- ✅ Modern ESX integration via `exports['es_extended']:getSharedObject()`
-- ✅ Proper player validation with `ESX.GetPlayerFromId()` and null checks
-- ✅ **Parameterized SQL queries** (`?` placeholders) for security and injection prevention
-- ✅ Optimized license checking with early breaks
-- ✅ Cleaner notification system using `ESX.ShowNotification()`
-- ✅ Streamlined user/licenses data assembly and transmission
-- ✅ Code cleanup and inline comments for maintainability
+2. Asegúrate de iniciar dependencias antes del recurso:
 
----
+```cfg
+ensure oxmysql
+ensure es_extended
+ensure esx_license
+# Opcional, solo si quieres foto real:
+ensure MugShotBase64
+ensure jsfour-idcard
+```
 
-## 📥 Installation
+3. Revisa `config.lua` y adapta labels, tipos de licencia, distancia, comandos o tablas SQL si tu servidor usa nombres distintos.
 
-### Prerequisites
+## Uso clásico
 
-- **es_extended (ESX Legacy)** - Core framework
-- **oxmysql** - Database connectivity (or your configured MySQL resource)
-- **esx_license** - License system for driver and firearms permits
-
-### Setup Steps
-
-1. **Download** and extract the resource to your `resources` folder
-2. **Ensure** ESX Legacy and esx_license are properly installed
-3. **Add** to your `server.cfg`:
-   ```
-   ensure jsfour-idcard
-   ```
-4. **Restart** your server or use the in-game restart command
-
----
-
-## 🎮 Usage
-
-### Viewing Your Own Documents
+El evento original sigue funcionando:
 
 ```lua
--- View your ID card
+-- Ver tu DNI
 TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()))
 
--- View your driver license
+-- Mostrar DNI al jugador más cercano
+local player, distance = ESX.Game.GetClosestPlayer()
+if distance ~= -1 and distance <= 3.0 then
+    TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player))
+else
+    ESX.ShowNotification('No hay jugadores cerca')
+end
+
+-- Ver permiso de conducir
 TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'driver')
 
--- View your firearms license
-TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'weapon')
-```
-
-### Showing Documents to Others
-
-```lua
+-- Mostrar permiso de conducir
 local player, distance = ESX.Game.GetClosestPlayer()
-
 if distance ~= -1 and distance <= 3.0 then
-  -- Show ID card
-  TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player))
-  
-  -- Or show driver license
-  TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'driver')
-  
-  -- Or show firearms license
-  TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'weapon')
+    TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'driver')
 else
-  ESX.ShowNotification('No players nearby')
+    ESX.ShowNotification('No hay jugadores cerca')
+end
+
+-- Ver licencia de armas
+TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'weapon')
+
+-- Mostrar licencia de armas
+local player, distance = ESX.Game.GetClosestPlayer()
+if distance ~= -1 and distance <= 3.0 then
+    TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'weapon')
+else
+    ESX.ShowNotification('No hay jugadores cerca')
 end
 ```
 
-### Complete Menu Example
+## Comando incluido
+
+El comando se puede activar/desactivar en `config.lua`.
+
+```txt
+/idcard
+/idcard id
+/idcard driver
+/idcard weapon
+/idcard id show
+/idcard driver show
+/idcard weapon show
+```
+
+También acepta `mostrar`:
+
+```txt
+/idcard driver mostrar
+```
+
+## Configurar labels de licencias
+
+Tus licencias ya vienen añadidas en `config.lua`:
 
 ```lua
-function openIDMenu()
-  ESX.UI.Menu.Open(
-    'default', GetCurrentResourceName(), 'id_card_menu',
-    {
-      title    = 'Documentation',
-      elements = {
-        {label = 'Check your ID', value = 'checkID'},
-        {label = 'Show your ID', value = 'showID'},
-        {label = 'Check driver license', value = 'checkDriver'},
-        {label = 'Show driver license', value = 'showDriver'},
-        {label = 'Check firearms license', value = 'checkFirearms'},
-        {label = 'Show firearms license', value = 'showFirearms'},
-      }
+Config.Licenses = {
+    dmv = { label = 'Examen Teórico' },
+    drive = { label = 'Permiso de Coche' },
+    drive_bike = { label = 'Permiso de Moto' },
+    drive_truck = { label = 'Permiso de Camión' },
+    weapon = { label = 'Weapon License' },
+    weapon_handgun = { label = 'Licencia de Armas Cortas' },
+    weapon_long = { label = 'Licencia de Armas Largas' },
+    weapon_melee = { label = 'Licencia de Armas Cuerpo a Cuerpo' }
+}
+```
+
+Para decidir qué licencias aparecen en cada documento, edita `Config.CardTypes`:
+
+```lua
+Config.CardTypes.driver.visibleLicenses = {
+    'dmv',
+    'drive',
+    'drive_bike',
+    'drive_truck'
+}
+```
+
+Para decidir qué licencias son necesarias para abrir un tipo de documento:
+
+```lua
+Config.CardTypes.driver.requiredLicenses = {
+    'drive',
+    'drive_bike',
+    'drive_truck'
+}
+```
+
+Con esa configuración, `dmv` se muestra en el carnet de conducir si el jugador la tiene, pero no sirve por sí sola para abrir el permiso de conducir. Si quieres que el examen teórico también permita abrir el documento, añade `dmv` a `requiredLicenses`.
+
+## MugShotBase64 opcional
+
+Este fork puede usar `MugShotBase64` para enseñar la cara real del jugador en vez de las imágenes por defecto.
+
+Recurso opcional:
+
+```cfg
+ensure MugShotBase64
+ensure jsfour-idcard
+```
+
+Config:
+
+```lua
+Config.MugShot = {
+    enabled = true,
+    resource = 'MugShotBase64',
+    transparent = true,
+    timeout = 1500,
+    cache = {
+        enabled = true,
+        duration = 300000
+    }
+}
+```
+
+Funcionamiento:
+
+- Si `MugShotBase64` está iniciado, el cliente genera una imagen base64 del ped del jugador.
+- El servidor solo acepta esa imagen desde el propio dueño del documento.
+- Si el recurso no existe, no está iniciado o falla, se usa `male.png` / `female.png`.
+- La foto se cachea en cliente para evitar conversiones repetidas.
+
+## Base de datos
+
+Por defecto usa tablas estándar ESX:
+
+```sql
+users(identifier, firstname, lastname, dateofbirth, sex, height)
+user_licenses(owner, type)
+```
+
+Ejemplo de inserción de tus licencias en `licenses`, si tu `esx_license` las necesita registradas:
+
+```sql
+INSERT INTO licenses (`type`, `label`) VALUES
+('dmv', 'Examen Teórico'),
+('drive', 'Permiso de Coche'),
+('drive_bike', 'Permiso de Moto'),
+('drive_truck', 'Permiso de Camión'),
+('weapon', 'Weapon License'),
+('weapon_handgun', 'Licencia de Armas Cortas'),
+('weapon_long', 'Licencia de Armas Largas'),
+('weapon_melee', 'Licencia de Armas Cuerpo a Cuerpo')
+ON DUPLICATE KEY UPDATE label = VALUES(label);
+```
+
+Si tu base de datos usa otros nombres de columnas, cambia:
+
+```lua
+Config.Database = {
+    users = {
+        table = 'users',
+        identifier = 'identifier',
+        firstname = 'firstname',
+        lastname = 'lastname',
+        dateofbirth = 'dateofbirth',
+        sex = 'sex',
+        height = 'height'
     },
-    function(data, menu)
-      local val = data.current.value
-      local player, distance = ESX.Game.GetClosestPlayer()
-      
-      if val == 'checkID' then
-        TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()))
-      elseif val == 'checkDriver' then
-        TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'driver')
-      elseif val == 'checkFirearms' then
-        TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'weapon')
-      elseif distance ~= -1 and distance <= 3.0 then
-        if val == 'showID' then
-          TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player))
-        elseif val == 'showDriver' then
-          TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'driver')
-        elseif val == 'showFirearms' then
-          TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(player), 'weapon')
-        end
-      else
-        ESX.ShowNotification('No players nearby')
-      end
-    end,
-    function(data, menu)
-      menu.close()
-    end
-  )
-end
+    licenses = {
+        table = 'user_licenses',
+        owner = 'owner',
+        type = 'type'
+    }
+}
 ```
 
----
+## Notas de seguridad
 
-## 🎨 Customization
+Aunque el evento mantiene esta forma:
 
-### Card Design
-
-A PSD template is available for customizing the visual design of ID cards:
-
-📥 [Download PSD Template](https://www.dropbox.com/sh/ho6xq5cmk6sxz6x/AAB3aPJOylL7EWrU6BFb45-0a?dl=0)
-
-You can modify colors, fonts, and layouts to match your server's branding.
-
----
-
-## 🔗 Dependencies
-
-| Dependency | Repository | Purpose |
-|---|---|---|
-| **es_extended (ESX Legacy)** | [ESX Core](https://github.com/esx-framework/esx_core) | Core player framework |
-| **esx_license** | [ESX License](https://github.com/esx-framework/ESX-Legacy-Addons/tree/main/%5Besx_addons%5D/esx_license) | License management system |
-| **oxmysql** | [oxmysql](https://github.com/overextended/oxmysql) | Database queries |
-
----
-
-## 📝 About This Fork
-
-This refactored version is **designed specifically for TempestaRP's infrastructure**. It is shared as-is for those who might find it useful.
-
-### ⚠️ Important Notice
-
-- ⚠️ **No Technical Support**: We do not provide setup assistance, debugging, or implementation help
-- 🔧 **TempestaRP-Specific**: This code is optimized for our server's exact setup and may require heavy adaptation for other environments
-- 📚 **Minimal Documentation**: Code comments and notes are minimal because this is our internal implementation, not a public library
-- 🚀 **Reference Implementation**: Use this as a reference or example—it's not designed to be plug-and-play
-- 👤 **Respect Original License**: Always respect JSFOUR's original copyright and no-resale terms
-
----
-
-## 📝 License
-
-**Original Work by JSFOUR:**
-
-```
-Copyright (C) JSFOUR - All Rights Reserved 
-You are not allowed to sell this script or re-upload it 
-Visit my page at https://github.com/jonassvensson4 
-Written by Jonas Svensson, July 2018 
+```lua
+TriggerServerEvent('jsfour-idcard:open', ownerId, targetId, type)
 ```
 
-This fork respects the original author's licensing terms. Please do **not** sell or reupload this resource.
+El servidor **no confía en `ownerId`**. Esto evita que un jugador pueda pedir el DNI/licencias de otro jugador falseando IDs desde el cliente.
 
----
+El único dato que se enseña es el del jugador que ejecuta el evento (`source`).
 
-## 🙏 Credits
+## Créditos
 
-- **Original Author**: [Jonas Svensson (JSFOUR)](https://github.com/jonassvensson4)
-- **Original Repository**: [jsfour-idcard](https://github.com/jnsvns/jsfour-idcard)
-- **This Fork**: Modern refactoring with improved code quality and ESX integration
+- Recurso original: JSFOUR / Jonas Svensson.
+- Fork mantenido para ESX Legacy + oxmysql.
+- Integración opcional de mugshot mediante `MugShotBase64`.
 
----
+## PSD original
 
-## 👨‍💻 Fork Changes Summary
-
-This fork includes a complete refactor focusing on:
-
-- **Performance**: Eliminated perpetual key loops in favor of smart thread management
-- **Security**: Parameterized SQL queries prevent injection attacks
-- **Modern ESX**: Updated to current ESX Legacy integration patterns
-- **Code Quality**: Cleaner logic, better error handling, and improved maintainability
-- **Memory Management**: Proper cleanup and resource deallocation
-
----
-
-<div align="center">
-
-⭐ If you find this useful, consider giving it a star!
-
-Made with ❤️ for the FiveM community
-
-</div>
+PSD file original: https://www.dropbox.com/sh/ho6xq5cmk6sxz6x/AAB3aPJOylL7EWrU6BFb45-0a?dl=0

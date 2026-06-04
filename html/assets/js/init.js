@@ -1,71 +1,105 @@
-$(document).ready(function () {
-  // Diccionario de traducciones - Edita esto fácilmente
-  const lang = {
-    male: "VARÓN",
-    female: "MUJER",
-    bike: "MOTO",
-    truck: "CAMIÓN",
-    car: "COCHE"
-  };
+(function () {
+  const idCard = document.getElementById('id-card');
+  const portrait = document.getElementById('portrait');
+  const cardTitle = document.getElementById('card-title');
+  const name = document.getElementById('name');
+  const dob = document.getElementById('dob');
+  const sex = document.getElementById('sex');
+  const height = document.getElementById('height');
+  const signature = document.getElementById('signature');
+  const licenses = document.getElementById('licenses');
+
+  function getUser(payload) {
+    if (!payload || !payload.user) return {};
+    return Array.isArray(payload.user) ? (payload.user[0] || {}) : payload.user;
+  }
+
+  function getLicenses(payload) {
+    if (!payload || !payload.licenses) return [];
+    return Array.isArray(payload.licenses) ? payload.licenses : Object.values(payload.licenses);
+  }
+
+  function getSexLabel(rawSex, sexLabels) {
+    if (rawSex === undefined || rawSex === null) return '';
+
+    const key = String(rawSex).toLowerCase();
+    if (sexLabels && sexLabels[key]) return sexLabels[key];
+
+    if (key === 'm') return 'male';
+    if (key === 'f') return 'female';
+
+    return key;
+  }
+
+  function getDefaultPortrait(rawSex) {
+    const sexValue = String(rawSex || '').toLowerCase();
+    return sexValue === 'f' || sexValue === 'female' || sexValue === '1'
+      ? 'assets/images/female.png'
+      : 'assets/images/male.png';
+  }
+
+  function clearCard() {
+    cardTitle.textContent = '';
+    name.textContent = '';
+    dob.textContent = '';
+    sex.textContent = '';
+    height.textContent = '';
+    signature.textContent = '';
+    licenses.innerHTML = '';
+    portrait.src = 'assets/images/male.png';
+    portrait.style.display = 'block';
+    idCard.className = '';
+    idCard.style.display = 'none';
+  }
+
+  function addLicense(label) {
+    const item = document.createElement('p');
+    item.textContent = label;
+    licenses.appendChild(item);
+  }
 
   window.addEventListener('message', function (event) {
-    const data = event.data;
+    const data = event.data || {};
 
-    if (data.action == 'open') {
-      const type = data.type;
-      const userData = data.array['user'][0];
-      const licenseData = data.array['licenses'];
-      const fullName = `${userData.firstname} ${userData.lastname}`;
+    if (data.action === 'close') {
+      clearCard();
+      return;
+    }
 
-      // Reset de licencias para que no se dupliquen al abrir/cerrar
-      $('#licenses').empty();
+    if (data.action !== 'open') return;
 
-      if (type == 'driver' || type == null) {
-        $('img').show();
-        $('#id-card').css('background', `url(assets/images/${type == 'driver' ? 'license' : 'idcard'}.png)`);
-        $('#name').css('color', '#282828').text(fullName);
+    const payload = data.array || {};
+    const userData = getUser(payload);
+    const licenseData = getLicenses(payload);
+    const card = payload.card || {};
+    const fullName = `${userData.firstname || ''} ${userData.lastname || ''}`.trim();
+    const showPhoto = card.showPhoto !== false;
+    const showHeight = card.showHeight !== false;
+    const showLicenses = card.showLicenses === true;
 
-        // Traducción de Sexo e Imagen
-        const isMale = userData.sex.toLowerCase() == 'm';
-        $('img').attr('src', `assets/images/${isMale ? 'male' : 'female'}.png`);
-        $('#sex').text(isMale ? lang.male : lang.female);
+    idCard.className = card.type ? `card-${card.type}` : '';
+    idCard.style.background = `url(${card.background || 'assets/images/idcard.png'})`;
+    cardTitle.textContent = card.label || '';
+    name.textContent = fullName;
+    dob.textContent = userData.dateofbirth || '';
+    sex.textContent = getSexLabel(userData.sex, payload.sexLabels);
+    height.textContent = showHeight && userData.height ? String(userData.height) : '';
+    signature.textContent = fullName;
+    licenses.innerHTML = '';
 
-        $('#dob').text(userData.dateofbirth);
-        $('#height').text(userData.height);
-        $('#signature').text(fullName);
+    if (showPhoto) {
+      portrait.src = payload.mugshot || getDefaultPortrait(userData.sex);
+      portrait.style.display = 'block';
+    } else {
+      portrait.style.display = 'none';
+    }
 
-        // Lógica de Licencias mejorada
-        if (type == 'driver' && licenseData) {
-          licenseData.forEach(function (license) {
-            let label = "";
-            if (license.type == 'drive_bike') label = lang.bike;
-            else if (license.type == 'drive_truck') label = lang.truck;
-            else if (license.type == 'drive') label = lang.car;
-
-            if (label) {
-              $('#licenses').append(`<p class="license-item">${label}</p>`);
-            }
-          });
-        }
-
-      } else if (type == 'weapon') {
-        $('img').hide();
-        $('#name').css('color', '#d9d9d9').text(fullName);
-        $('#dob').text(userData.dateofbirth);
-        $('#signature').text(fullName);
-        $('#id-card').css('background', 'url(assets/images/firearm.png)');
-        // Limpiamos campos que no usa el carnet de armas
-        $('#sex, #height').text('');
-      }
-
-      $('#id-card').fadeIn(500); // Un efecto de entrada más suave
-
-    } else if (data.action == 'close') {
-      $('#id-card').fadeOut(300, function () {
-        // Limpieza total al terminar la animación
-        $('#name, #dob, #height, #signature, #sex').text('');
-        $('#licenses').empty();
+    if (showLicenses) {
+      licenseData.forEach(function (license) {
+        addLicense(license.label || license.type || '');
       });
     }
+
+    idCard.style.display = 'block';
   });
-});
+})();
